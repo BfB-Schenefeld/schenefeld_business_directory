@@ -43,6 +43,7 @@ SQL
 
   # Find all keywords on the current page
   keywords = page.search('.listing a')
+  puts "  Found #{keywords.count} keywords for letter #{letter}"
 
   keywords.each_with_index do |keyword, index|
     keyword_text = keyword.text.strip
@@ -65,6 +66,7 @@ SQL
     else
       # Multiple companies, find all company links on the keyword-listing page
       company_links = keyword_page.search('.listing a')
+      puts "    Found #{company_links.count} companies for keyword #{keyword_text}"
 
       company_links.each_with_index do |company_link, company_index|
         company_url = company_link['href']
