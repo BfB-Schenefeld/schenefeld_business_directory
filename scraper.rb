@@ -3,41 +3,47 @@ require 'mechanize'
 require 'sqlite3'
 
 def extract_company_data(page, keyword_text, kategorie_id, mandat_id = nil)
-  name = page.at('h1').text.strip
-  address_parts = page.at('h4').text.strip.split('<br>')
-  street_address = address_parts[0].strip
-  zip_city = address_parts[1].strip
+  begin
+    name = page.at('h1').text.strip
+    address_parts = page.at('h4').text.strip.split('<br>')
+    street_address = address_parts[0].strip
+    zip_city = address_parts[1].strip
 
-  phone_link = page.at('a[href^="tel:"]')
-  phone = phone_link ? phone_link.text.strip : nil
+    phone_link = page.at('a[href^="tel:"]')
+    phone = phone_link ? phone_link.text.strip : nil
 
-  fax_link = page.at('a[aria-label^="Telefax:"]')
-  fax = fax_link ? fax_link.text.strip : nil
+    fax_link = page.at('a[aria-label^="Telefax:"]')
+    fax = fax_link ? fax_link.text.strip : nil
 
-  email_link = page.at('a[href^="mailto:"]')
-  email = email_link ? email_link.text.strip : nil
+    email_link = page.at('a[href^="mailto:"]')
+    email = email_link ? email_link.text.strip : nil
 
-  website_link = page.at('a[onclick="target=\'_blank\'"]')
-  website = website_link ? website_link.text.strip : nil
+    website_link = page.at('a[onclick="target=\'_blank\'"]')
+    website = website_link ? website_link.text.strip : nil
 
-  additional_info = page.search('div[style="margin-top:15px;"]').map(&:text).join("\n").strip
+    additional_info = page.search('div[style="margin-top:15px;"]').map(&:text).join("\n").strip
 
-  # Extract mobile phone number from additional info if available
-  mobile_phone = additional_info.scan(/01\d{3}\/\d{2}\s?\d{2}\s?\d{3}/).first
+    # Extract mobile phone number from additional info if available
+    mobile_phone = additional_info.scan(/01\d{3}\/\d{2}\s?\d{2}\s?\d{3}/).first
 
-  puts "      Company: #{name}"
-  puts "        Street Address: #{street_address}"
-  puts "        ZIP/City: #{zip_city}"
-  puts "        Phone: #{phone}"
-  puts "        Fax: #{fax}"
-  puts "        Email: #{email}"
-  puts "        Website: #{website}"
-  puts "        Additional Info: #{additional_info}"
-  puts "        Mobile Phone: #{mobile_phone}"
+    puts "      Company: #{name}"
+    puts "        Street Address: #{street_address}"
+    puts "        ZIP/City: #{zip_city}"
+    puts "        Phone: #{phone}"
+    puts "        Fax: #{fax}"
+    puts "        Email: #{email}"
+    puts "        Website: #{website}"
+    puts "        Additional Info: #{additional_info}"
+    puts "        Mobile Phone: #{mobile_phone}"
 
-  # Save the extracted company data to the SQLite database
-  db.execute("INSERT OR REPLACE INTO companies (name, street_address, zip_city, phone, fax, email, website, additional_info, mobile_phone, keyword_text, kategorie_id, mandat_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [name, street_address, zip_city, phone, fax, email, website, additional_info, mobile_phone, keyword_text, kategorie_id, mandat_id])
+    # Save the extracted company data to the SQLite database
+    db.execute("INSERT OR REPLACE INTO companies (name, street_address, zip_city, phone, fax, email, website, additional_info, mobile_phone, keyword_text, kategorie_id, mandat_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [name, street_address, zip_city, phone, fax, email, website, additional_info, mobile_phone, keyword_text, kategorie_id, mandat_id])
+  rescue => e
+    puts "Error extracting company data: #{e.message}"
+    puts "Company page URL: #{page.uri}"
+  end
 end
+
 agent = Mechanize.new
 
 base_url = 'https://www.stadt-schenefeld-wirtschaft.de/verzeichnis/index.php'
