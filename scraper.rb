@@ -1,13 +1,39 @@
 # encoding: utf-8
 require 'mechanize'
-require 'scraperwiki'
+require 'sqlite3'
 
 agent = Mechanize.new
 
 base_url = 'https://www.stadt-schenefeld-wirtschaft.de/verzeichnis/index.php'
 
 # Connect to the SQLite database
-ScraperWiki.config = { db: 'data.sqlite' }
+db = SQLite3::Database.new('data.sqlite')
+
+# Create tables if they don't exist
+db.execute <<-SQL
+  CREATE TABLE IF NOT EXISTS keywords (
+    keyword_text TEXT PRIMARY KEY,
+    keyword_link TEXT,
+    kategorie_id INTEGER
+  );
+SQL
+
+db.execute <<-SQL
+  CREATE TABLE IF NOT EXISTS companies (
+    name TEXT PRIMARY KEY,
+    street_address TEXT,
+    zip_city TEXT,
+    phone TEXT,
+    fax TEXT,
+    email TEXT,
+    website TEXT,
+    additional_info TEXT,
+    mobile_phone TEXT,
+    keyword_text TEXT,
+    kategorie_id INTEGER,
+    mandat_id INTEGER
+  );
+SQL
 
 # Iterate through each letter from A to Z
 ('A'..'Z').each do |letter|
@@ -26,11 +52,7 @@ ScraperWiki.config = { db: 'data.sqlite' }
     puts "  Keyword #{index + 1}: #{keyword_text} (Kategorie ID: #{kategorie_id})"
 
     # Save the keyword and its link to the SQLite database
-    ScraperWiki.save_sqlite([:keyword_text], {
-      keyword_text: keyword_text,
-      keyword_link: keyword_link,
-      kategorie_id: kategorie_id
-    }, table_name: 'keywords')
+    db.execute("INSERT OR REPLACE INTO keywords (keyword_text, keyword_link, kategorie_id) VALUES (?, ?, ?)", [keyword_text, keyword_link, kategorie_id])
 
     # Navigate to the keyword-listing page
     keyword_page = agent.get(keyword_link)
@@ -94,18 +116,5 @@ def extract_company_data(page, keyword_text, kategorie_id, mandat_id = nil)
   puts "        Mobile Phone: #{mobile_phone}"
 
   # Save the extracted company data to the SQLite database
-  ScraperWiki.save_sqlite([:name], {
-    name: name,
-    street_address: street_address,
-    zip_city: zip_city,
-    phone: phone,
-    fax: fax,
-    email: email,
-    website: website,
-    additional_info: additional_info,
-    mobile_phone: mobile_phone,
-    keyword_text: keyword_text,
-    kategorie_id: kategorie_id,
-    mandat_id: mandat_id
-  }, table_name: 'companies')
+  db.execute("INSERT OR REPLACE INTO companies (name, street_address, zip_city, phone, fax, email, website, additional_info, mobile_phone, keyword_text, kategorie_id, mandat_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [name, street_address, zip_city, phone, fax, email, website, additional_info, mobile_phone, keyword_text, kategorie_id, mandat_id])
 end
