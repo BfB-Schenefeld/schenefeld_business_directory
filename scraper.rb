@@ -6,6 +6,9 @@ agent = Mechanize.new
 
 base_url = 'https://www.stadt-schenefeld-wirtschaft.de/verzeichnis/index.php'
 
+# Connect to the SQLite database
+ScraperWiki.config = { db: 'data.sqlite' }
+
 # Iterate through each letter from A to Z
 ('A'..'Z').each do |letter|
   url = "#{base_url}?verzeichnistyp=0&buchstabe=#{letter}"
@@ -27,7 +30,7 @@ base_url = 'https://www.stadt-schenefeld-wirtschaft.de/verzeichnis/index.php'
       keyword_text: keyword_text,
       keyword_link: keyword_link,
       kategorie_id: kategorie_id
-    })
+    }, table_name: 'keywords')
 
     # Navigate to the keyword-listing page
     keyword_page = agent.get(keyword_link)
@@ -104,5 +107,5 @@ def extract_company_data(page, keyword_text, kategorie_id, mandat_id = nil)
     keyword_text: keyword_text,
     kategorie_id: kategorie_id,
     mandat_id: mandat_id
-  })
+  }, table_name: 'companies')
 end
