@@ -68,10 +68,17 @@ def extract_company_data(page, keyword_text, kategorie_id, mandat_id = nil)
   street_address = address_parts[0].strip
   zip_city = address_parts[1].strip
 
-  phone = page.at('a[href^="tel:"]')&.text&.strip
-  fax = page.at('a[aria-label^="Telefax:"]')&.text&.strip
-  email = page.at('a[href^="mailto:"]')&.text&.strip
-  website = page.at('a[onclick="target=\'_blank\'"]')&.text&.strip
+  phone_link = page.at('a[href^="tel:"]')
+  phone = phone_link ? phone_link.text.strip : nil
+
+  fax_link = page.at('a[aria-label^="Telefax:"]')
+  fax = fax_link ? fax_link.text.strip : nil
+
+  email_link = page.at('a[href^="mailto:"]')
+  email = email_link ? email_link.text.strip : nil
+
+  website_link = page.at('a[onclick="target=\'_blank\'"]')
+  website = website_link ? website_link.text.strip : nil
 
   additional_info = page.search('div[style="margin-top:15px;"]').map(&:text).join("\n").strip
 
