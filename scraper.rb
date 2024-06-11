@@ -42,7 +42,7 @@ SQL
   page = agent.get(url)
 
   # Find all keywords on the current page
-  keywords = page.search('.listing a')
+  keywords = page.search('div[style="width:100%;margin-top:0;"] a')
   puts "  Found #{keywords.count} keywords for letter #{letter}"
 
   keywords.each_with_index do |keyword, index|
