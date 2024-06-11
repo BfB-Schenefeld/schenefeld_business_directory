@@ -5,6 +5,9 @@ gemfile do
   source 'https://rubygems.org'
   gem 'mechanize', '~> 2.7.7'
   gem 'scraperwiki', git: 'https://github.com/openaustralia/scraperwiki-ruby.git', tag: 'morph_defaults'
+  platforms :ruby do
+    gem 'sqlite3'
+  end
 end
 
 agent = Mechanize.new
