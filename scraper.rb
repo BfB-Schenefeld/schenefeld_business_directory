@@ -4,10 +4,16 @@ require 'sqlite3'
 
 def extract_company_data(page, keyword_text, kategorie_id, mandat_id = nil)
   begin
-    name = page.at('h1').text.strip
-    address_parts = page.at('h4').text.strip.split('<br>')
-    street_address = address_parts[0].strip
-    zip_city = address_parts[1].strip
+    name = page.at('h1')&.text&.strip
+    address_element = page.at('h4')
+    if address_element
+      address_parts = address_element.text.strip.split('<br>')
+      street_address = address_parts[0]&.strip
+      zip_city = address_parts[1]&.strip
+    else
+      street_address = nil
+      zip_city = nil
+    end
 
     phone_link = page.at('a[href^="tel:"]')
     phone = phone_link ? phone_link.text.strip : nil
@@ -95,7 +101,8 @@ SQL
     puts "  Keyword #{index + 1}: #{keyword_text} (Kategorie ID: #{kategorie_id})"
 
     # Save the keyword and its link to the SQLite database
-    db.execute("INSERT OR REPLACE INTO keywords (keyword_text, keyword_link, kategorie_id) VALUES (?, ?, ?)", [keyword_text, keyword_link, kategorie_id])
+    keyword_url = "#{base_url}#{keyword_link}"
+    db.execute("INSERT OR REPLACE INTO keywords (keyword_text, keyword_link, kategorie_id) VALUES (?, ?, ?)", [keyword_text, keyword_url, kategorie_id])
 
     # Navigate to the keyword-listing page
     keyword_page = agent.get(keyword_link)
