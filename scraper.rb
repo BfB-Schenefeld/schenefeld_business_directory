@@ -4,12 +4,14 @@ require 'sqlite3'
 
 def extract_company_data(page, keyword_text, kategorie_id, mandat_id = nil)
   begin
-    name = page.at('h1')&.text&.strip
+    name_element = page.at('h1')
+    name = name_element ? name_element.text.strip : nil
+    
     address_element = page.at('h4')
     if address_element
       address_parts = address_element.text.strip.split('<br>')
-      street_address = address_parts[0]&.strip
-      zip_city = address_parts[1]&.strip
+      street_address = address_parts[0] ? address_parts[0].strip : nil
+      zip_city = address_parts[1] ? address_parts[1].strip : nil
     else
       street_address = nil
       zip_city = nil
