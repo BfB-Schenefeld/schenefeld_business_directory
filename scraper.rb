@@ -2,11 +2,13 @@
 require 'mechanize'
 require 'sqlite3'
 
+db = SQLite3::Database.new('data.sqlite')
+
 def extract_company_data(page, keyword_text, kategorie_id, mandat_id = nil)
   begin
     name_element = page.at('h1')
     name = name_element ? name_element.text.strip : nil
-    
+
     address_element = page.at('h4')
     if address_element
       address_parts = address_element.text.strip.split('<br>')
@@ -29,7 +31,7 @@ def extract_company_data(page, keyword_text, kategorie_id, mandat_id = nil)
     website_link = page.at('a[onclick="target=\'_blank\'"]')
     website = website_link ? website_link.text.strip : nil
 
-    additional_info = page.search('div[style="margin-top:15px;"]').map(&:text).join("\n").strip
+    additional_info = page.search('div[style="margin-top:15px;"]').map(&:text).join("\n").strip.split("Weitere Informationen:").first.strip
 
     # Extract mobile phone number from additional info if available
     mobile_phone = additional_info.scan(/01\d{3}\/\d{2}\s?\d{2}\s?\d{3}/).first
@@ -55,35 +57,6 @@ end
 agent = Mechanize.new
 
 base_url = 'https://www.stadt-schenefeld-wirtschaft.de/verzeichnis/index.php'
-
-# Connect to the SQLite database
-db = SQLite3::Database.new('data.sqlite')
-
-# Create tables if they don't exist
-db.execute <<-SQL
-  CREATE TABLE IF NOT EXISTS keywords (
-    keyword_text TEXT PRIMARY KEY,
-    keyword_link TEXT,
-    kategorie_id INTEGER
-  );
-SQL
-
-db.execute <<-SQL
-  CREATE TABLE IF NOT EXISTS companies (
-    name TEXT PRIMARY KEY,
-    street_address TEXT,
-    zip_city TEXT,
-    phone TEXT,
-    fax TEXT,
-    email TEXT,
-    website TEXT,
-    additional_info TEXT,
-    mobile_phone TEXT,
-    keyword_text TEXT,
-    kategorie_id INTEGER,
-    mandat_id INTEGER
-  );
-SQL
 
 # Iterate through each letter from A to Z
 ('A'..'Z').each do |letter|
@@ -116,7 +89,7 @@ SQL
       extract_company_data(keyword_page, keyword_text, kategorie_id)
     else
       # Multiple companies, find all company links on the keyword-listing page
-      company_links = keyword_page.search('.listing a')
+      company_links = keyword_page.search('a.titel')
       puts "    Found #{company_links.count} companies for keyword #{keyword_text}"
 
       company_links.each_with_index do |company_link, company_index|
@@ -134,5 +107,3 @@ SQL
     end
   end
 end
-
-
