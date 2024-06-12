@@ -2,9 +2,8 @@
 require 'mechanize'
 require 'sqlite3'
 
-db = SQLite3::Database.new('data.sqlite')
-
 def extract_company_data(page, keyword_text, kategorie_id, mandat_id = nil)
+  db = SQLite3::Database.new('data.sqlite')
   begin
     name_element = page.at('h1')
     name = name_element ? name_element.text.strip : nil
@@ -12,11 +11,13 @@ def extract_company_data(page, keyword_text, kategorie_id, mandat_id = nil)
     address_element = page.at('h4')
     if address_element
       address_parts = address_element.text.strip.split('<br>')
-      street_address = address_parts[0] ? address_parts[0].strip : nil
-      zip_city = address_parts[1] ? address_parts[1].strip : nil
+      street_address = address_parts[0].strip
+      zip_city = address_parts[1].strip
+      zip_code, city = zip_city.split(' ', 2)
     else
       street_address = nil
-      zip_city = nil
+      zip_code = nil
+      city = nil
     end
 
     phone_link = page.at('a[href^="tel:"]')
@@ -34,11 +35,12 @@ def extract_company_data(page, keyword_text, kategorie_id, mandat_id = nil)
     additional_info = page.search('div[style="margin-top:15px;"]').map(&:text).join("\n").strip.split("Weitere Informationen:").first.strip
 
     # Extract mobile phone number from additional info if available
-    mobile_phone = additional_info.scan(/01\d{3}\/\d{2}\s?\d{2}\s?\d{3}/).first
+    mobile_phone = additional_info.scan(/01\d{2}\s?\d{2}\s?\d{2}\s?\d{2}\s?\d{2}/).first
 
     puts "      Company: #{name}"
     puts "        Street Address: #{street_address}"
-    puts "        ZIP/City: #{zip_city}"
+    puts "        ZIP Code: #{zip_code}"
+    puts "        City: #{city}"
     puts "        Phone: #{phone}"
     puts "        Fax: #{fax}"
     puts "        Email: #{email}"
@@ -47,10 +49,12 @@ def extract_company_data(page, keyword_text, kategorie_id, mandat_id = nil)
     puts "        Mobile Phone: #{mobile_phone}"
 
     # Save the extracted company data to the SQLite database
-    db.execute("INSERT OR REPLACE INTO companies (name, street_address, zip_city, phone, fax, email, website, additional_info, mobile_phone, keyword_text, kategorie_id, mandat_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [name, street_address, zip_city, phone, fax, email, website, additional_info, mobile_phone, keyword_text, kategorie_id, mandat_id])
+    db.execute("INSERT OR REPLACE INTO companies (name, street_address, zip_code, city, phone, fax, email, website, additional_info, mobile_phone, keyword_text, kategorie_id, mandat_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [name, street_address, zip_code, city, phone, fax, email, website, additional_info, mobile_phone, keyword_text, kategorie_id, mandat_id])
   rescue => e
     puts "Error extracting company data: #{e.message}"
     puts "Company page URL: #{page.uri}"
+  ensure
+    db.close if db
   end
 end
 
@@ -77,7 +81,9 @@ base_url = 'https://www.stadt-schenefeld-wirtschaft.de/verzeichnis/index.php'
 
     # Save the keyword and its link to the SQLite database
     keyword_url = "#{base_url}#{keyword_link}"
+    db = SQLite3::Database.new('data.sqlite')
     db.execute("INSERT OR REPLACE INTO keywords (keyword_text, keyword_link, kategorie_id) VALUES (?, ?, ?)", [keyword_text, keyword_url, kategorie_id])
+    db.close
 
     # Navigate to the keyword-listing page
     keyword_page = agent.get(keyword_link)
