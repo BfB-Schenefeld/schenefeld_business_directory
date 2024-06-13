@@ -2,6 +2,9 @@
 require 'mechanize'
 require 'sqlite3'
 
+database_file = 'data.sqlite'
+File.delete(database_file) if File.exist?(database_file)
+
 def create_tables(db)
   db.execute <<-SQL
     CREATE TABLE IF NOT EXISTS keywords (
