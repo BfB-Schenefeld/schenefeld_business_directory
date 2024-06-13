@@ -91,11 +91,9 @@ if email_script
   email_parts = email_script.text.scan(/'([^']+)'/)
   username_parts = email_parts[0..-2]
   domain_part = email_parts[-1]
-  domain_part = domain_part[0..-2] if domain_part.is_a?(Array) && domain_part[0] == '['
-  domain_parts = domain_part.split('.')
-
+  domain_part = domain_part[1..-1] if domain_part.is_a?(Array) && domain_part[0] == '['
+  domain = domain_part.join('.')
   username = username_parts.join('.')
-  domain = domain_parts.join('.')
   email = "#{username}@#{domain}"
 else
   email = nil
