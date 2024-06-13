@@ -90,7 +90,9 @@ def extract_company_data(page, keyword_text, kategorie_id, mandat_id)
 if email_script
   email_parts = email_script.text.scan(/'([^']+)'/)
   username_parts = email_parts[0..-2]
-  domain_parts = email_parts[-1].gsub(/\[|\]/, '').split('.')
+  domain_part = email_parts[-1]
+  domain_part = domain_part[0..-2] if domain_part.is_a?(Array) && domain_part[0] == '['
+  domain_parts = domain_part.split('.')
 
   username = username_parts.join('.')
   domain = domain_parts.join('.')
