@@ -84,11 +84,11 @@ def extract_company_data(page, keyword_text, kategorie_id, mandat_id)
   fax = fax_link ? fax_link.text.strip : nil
 
   email_link = page.at('a[href^="mailto:"]')
-email = email_link ? email_link.text : nil
+email = email_link ? email_link.text.strip : nil
 
 if email.nil?
   email_text = page.at('noscript')
-  email = email_text ? email_text.text.gsub('(at)', '@') : nil
+  email = email_text ? email_text.text.gsub('(at)', '@').strip : nil
 end
 
   website_link = page.at('a[onclick="target=\'_blank\'"]')
