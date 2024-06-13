@@ -51,7 +51,7 @@ def extract_company_data(page, keyword_text, kategorie_id, mandat_id)
   name_element = page.at('h1')
   name = name_element ? name_element.text.strip : nil
 
-  address_element = page.at('article.contrast_border p, p:contains("Schenefeld")')
+  address_element = page.at('h4:contains("Schenefeld"), p:contains("Schenefeld")')
   if address_element
     address_text = address_element.text.strip
     address_parts = address_text.split(/(\d{5})/).map(&:strip)
