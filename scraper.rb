@@ -52,7 +52,7 @@ def extract_company_data(page, keyword_text, kategorie_id, mandat_id)
   address_element = page.at('p:contains("Schenefeld")')
   if address_element
     address_text = address_element.text.strip
-    address_parts = address_text.split(',').map(&:strip)
+    address_parts = address_text.split(',').map { |part| part.strip }
     street_and_number = address_parts[0].split(' ', 2)
     street_name = street_and_number[0].strip
     house_number = street_and_number[1].strip
