@@ -54,7 +54,7 @@ def extract_company_data(page, keyword_text, kategorie_id, mandat_id)
     address_text = address_element.text.strip
     address_parts = address_text.split(/(\d{5})/).map(&:strip)
     if address_parts.length >= 3
-      street_and_number = address_parts[0].split(/(\d+\s*\w?)/).map(&:strip).reject(&:empty?)
+      street_and_number = address_parts[0].split(/(\d+\s*-\s*\d+|\d+\s*\w?)/).map(&:strip).reject(&:empty?)
       street_name = street_and_number[0..-2].join(' ')
       house_number = street_and_number[-1]
       zip_code = address_parts[1]
