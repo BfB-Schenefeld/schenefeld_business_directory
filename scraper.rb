@@ -89,7 +89,7 @@ def extract_company_data(page, keyword_text, kategorie_id, mandat_id)
   email_script = page.at('script:contains("emaillink")')
 if email_script
   email_parts = email_script.text.scan(/'([^']+)'/)
-  email = email_parts[0..-2].join('.') + '@' + email_parts[-1]
+  email = email_parts[0..-2].join('.') + '@' + email_parts[-1].to_s
 else
   email = nil
 end
