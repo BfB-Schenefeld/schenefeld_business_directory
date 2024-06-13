@@ -52,14 +52,13 @@ def extract_company_data(page, keyword_text, kategorie_id, mandat_id)
   address_element = page.at('p:contains("Schenefeld")')
   if address_element
     address_text = address_element.text.strip
-    address_parts = address_text.split(',').map { |part| part.strip }
-    if address_parts.length >= 2
-      street_and_number = address_parts[0].split(' ', 2)
-      street_name = street_and_number[0].strip
-      house_number = street_and_number[1].strip
-      zip_code_and_city = address_parts[1].split(' ', 2)
-      zip_code = zip_code_and_city[0].strip
-      city = zip_code_and_city[1].strip
+    address_parts = address_text.split(/(\d{5})/).map(&:strip)
+    if address_parts.length >= 3
+      street_and_number = address_parts[0].split(/(\d+\s*\w?)/).map(&:strip).reject(&:empty?)
+      street_name = street_and_number[0..-2].join(' ')
+      house_number = street_and_number[-1]
+      zip_code = address_parts[1]
+      city = address_parts[2]
     else
       street_name = nil
       house_number = nil
