@@ -84,19 +84,11 @@ def extract_company_data(page, keyword_text, kategorie_id, mandat_id)
   fax = fax_link ? fax_link.text.strip : nil
 
   email_link = page.at('a[href^="mailto:"]')
-  email = email_link ? email_link.text.strip : nil
+email = email_link ? email_link.text : nil
 
-  email_script = page.at('script:contains("emaillink")')
-if email_script
-  email_parts = email_script.text.scan(/'([^']+)'/)
-  username_parts = email_parts[0..-2]
-  domain_part = email_parts[-1]
-  domain_part = domain_part[1..-1] if domain_part.is_a?(Array) && domain_part[0] == '['
-  domain = domain_part.join('.')
-  username = username_parts.join('.')
-  email = "#{username}@#{domain}"
-else
-  email = nil
+if email.nil?
+  email_text = page.at('noscript')
+  email = email_text ? email_text.text.gsub('(at)', '@') : nil
 end
 
   website_link = page.at('a[onclick="target=\'_blank\'"]')
