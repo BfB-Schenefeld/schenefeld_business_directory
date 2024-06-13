@@ -53,12 +53,19 @@ def extract_company_data(page, keyword_text, kategorie_id, mandat_id)
   if address_element
     address_text = address_element.text.strip
     address_parts = address_text.split(',').map { |part| part.strip }
-    street_and_number = address_parts[0].split(' ', 2)
-    street_name = street_and_number[0].strip
-    house_number = street_and_number[1].strip
-    zip_code_and_city = address_parts[1].split(' ', 2)
-    zip_code = zip_code_and_city[0].strip
-    city = zip_code_and_city[1].strip
+    if address_parts.length >= 2
+      street_and_number = address_parts[0].split(' ', 2)
+      street_name = street_and_number[0].strip
+      house_number = street_and_number[1].strip
+      zip_code_and_city = address_parts[1].split(' ', 2)
+      zip_code = zip_code_and_city[0].strip
+      city = zip_code_and_city[1].strip
+    else
+      street_name = nil
+      house_number = nil
+      zip_code = nil
+      city = nil
+    end
   else
     street_name = nil
     house_number = nil
